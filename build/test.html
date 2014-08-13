@@ -1,0 +1,34 @@
+<html>
+
+<head>
+    <title>video tests</title>
+    <link rel="stylesheet" type="text/css" href="style/main.css">
+</head>
+
+<body>
+    <img src="assets/videos/fallback.png">
+
+    <script type="text/javascript">
+    	var noVideoUserAgents = ["iPhone"];
+
+    	console.log("lala");
+		console.log(canPlayVideos());
+
+	    document.addEventListener("touchstart", start);
+	    document.addEventListener("touchmove", move);
+	    document.addEventListener("touchend", end);
+
+	    function start(e) {console.log("start");}
+	    function move(e) {e.preventDefault(); console.log("move");}
+	    function end(e) {console.log("end");}
+	    
+	    function canPlayVideos(){
+	    	for(var i=0;i<noVideoUserAgents.length;i++){
+    			if(navigator.userAgent.indexOf(noVideoUserAgents[i])!=-1) return false
+    		}
+    		return true
+	    }
+    </script>
+</body>
+
+</html>

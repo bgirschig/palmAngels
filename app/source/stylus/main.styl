@@ -1,0 +1,53 @@
+@import 'nib'
+
+body
+	margin 0
+	padding 0
+
+	#backgroundWrapper
+		height 100%
+		width 100%
+		div
+			width 100%
+			height 100%
+			position absolute
+			top 0
+			overflow hidden
+			.bookpageWrap
+				position absolute
+				// margin auto
+				width 100vw
+				height 100vh
+				img
+					height 90%
+					margin auto
+					display block
+					top 52%
+					position relative
+					transform translateY(-50%)
+			video, img.fallback
+				min-width 100%
+				min-height 100%
+		.video:last-child
+			width 0
+		.video:first-child
+			width 100%
+
+	.no-select
+		user-select none
+
+	#progressBarWrap
+		width 100%
+		height 4px
+		position fixed
+		bottom 25px
+		#progressBar
+			background-color #FFB2B4
+			width 80%
+			height 100%
+			margin auto
+			#indicator
+				width 0%
+				height 100%
+				position relative
+				background-color white

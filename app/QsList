@@ -1,0 +1,13 @@
+questions
+	the book should be centered, not the book + the shadow ?
+	center cover and back cover?
+	kill the shadows?
+
+todos
+	loader for book pages
+
+ok as it is
+	is swipe anim smooth enough (framerate)
+	is the speed ok
+	no select image
+	center book images (horiz)
