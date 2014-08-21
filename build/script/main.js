@@ -1,6 +1,5 @@
 (function() {
-  var LEFT, MOUSE, NEXT, PREV, RIGHT, SIDE, aimSeamPos, animSeam, bgWrapper, canPlayVideos, currentPage, direction, enableVideo, init, initSwipe, mouse, next, noVideoUserAgents, onOrientation, onReleaseTouch, onkey, orientationEvent, pageDisplayWidthSuperhackState, pagesCount, prev, seamAnimSmoothness, seamGoTo, seamPos, setImages, supportsOrientationChange, swipeAnimEnd, updateMouse, updateProgressBar, videosCount,
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+  var LEFT, MOUSE, NEXT, PREV, RIGHT, SIDE, canPlayVideos, enableVideo, noVideoUserAgents;
 
   LEFT = 0;
 
@@ -16,182 +15,120 @@
 
   noVideoUserAgents = ["iPhone", "iPad"];
 
-  seamAnimSmoothness = 2;
-
-  pagesCount = 105;
-
-  videosCount = 3;
-
-  bgWrapper = document.getElementById("backgroundWrapper");
-
-  currentPage = 0;
-
-  direction = null;
-
-  seamPos = null;
-
-  aimSeamPos = null;
-
-  seamGoTo = null;
-
-  mouse = {};
-
-  pageDisplayWidthSuperhackState = true;
-
-  enableVideo = supportsOrientationChange = __indexOf.call(window, "onorientationchange") >= 0;
-
-  orientationEvent = supportsOrientationChange != null ? supportsOrientationChange : {
-    "orientationchange": "resize"
-  };
-
-  init = function() {
-    var bookpage, bookpageWrap, fallback, i, src, vid, wrap, _i, _ref;
-    enableVideo = canPlayVideos();
-    enableVideo = false;
-    for (i = _i = 0, _ref = videosCount - 1; _i <= _ref; i = _i += 1) {
-      wrap = document.createElement("div");
-      wrap.className = "video";
-      wrap.id = i;
-      bookpageWrap = document.createElement("div");
-      bookpageWrap.className = "bookpageWrap";
-      bookpage = document.createElement("img");
-      bookpage.draggable = false;
-      bookpage.className = "bookpage no-select";
-      fallback = document.createElement("img");
-      fallback.src = "assets/videos/fallback" + i + ".png";
-      fallback.draggable = false;
-      fallback.className = "fallback no-select";
-      if (enableVideo) {
-        vid = document.createElement("video");
-        vid.autoplay = true;
-        vid.loop = true;
-        src = document.createElement("source");
-        src.src = "assets/videos/vid" + i + ".mp4";
-        src.type = "video/mp4";
-      }
-      if (enableVideo) {
-        vid.appendChild(src);
-        bookpageWrap.appendChild(bookpage);
-        wrap.appendChild(bookpageWrap);
-        wrap.appendChild(vid);
-        bgWrapper.appendChild(wrap);
-      } else {
-        wrap.appendChild(fallback);
-        bookpageWrap.appendChild(bookpage);
-        wrap.appendChild(bookpageWrap);
-        bgWrapper.appendChild(wrap);
-      }
+  window.BookBrowser = (function() {
+    function BookBrowser(_pagesCount, appendTo) {
+      BookBrowser.seamAnimSmoothness = 1.5;
+      BookBrowser.pagesCount = _pagesCount;
+      BookBrowser.currentPage = 0;
+      BookBrowser.direction = null;
+      BookBrowser.seamPos = null;
+      BookBrowser.aimSeamPos = null;
+      BookBrowser.seamGoTo = null;
+      BookBrowser.stickToMouse = false;
+      BookBrowser.mouse = {};
+      BookBrowser.pageDisplayWidthSuperhackState = true;
+      BookBrowser.mainWrapper = appendTo;
+      BookBrowser.videosCount = 3;
+      BookBrowser.init();
     }
-    setImages();
-    window.addEventListener("touchstart", initSwipe);
-    window.addEventListener("touchend", onReleaseTouch);
-    return window.addEventListener("orientationchange", onOrientation);
+
+    return BookBrowser;
+
+  })();
+
+  BookBrowser.init = function() {
+    BookBrowser.generateDom();
+    BookBrowser.setImages();
+    window.addEventListener("touchstart", BookBrowser.initSwipe);
+    window.addEventListener("touchend", this.onReleaseTouch);
+    return window.addEventListener("orientationchange", this.onOrientation);
   };
 
-  onOrientation = function(e) {
-    var w;
-    e.preventDefault();
-    if (pageDisplayWidthSuperhackState) {
-      w = "99.9999%";
-    } else {
-      w = "100%";
-    }
-    bgWrapper.children[0].style.width = w;
-    bgWrapper.children[1].style.width = w;
-    pageDisplayWidthSuperhackState = !pageDisplayWidthSuperhackState;
-    return false;
-  };
-
-  onkey = function(e) {
-    if (e.keyCode === 37) {
-      return prev();
-    } else if (e.keyCode === 39) {
-      return next();
-    }
-  };
-
-  initSwipe = function(e) {
+  BookBrowser.initSwipe = function(e) {
     var go;
     go = false;
     if (e.touches) {
       e = e.touches[0];
     }
-    if (e.clientX < window.innerWidth / 2 && currentPage > 0) {
-      direction = RIGHT;
-      seamPos = 0;
+    if (e.clientX < window.innerWidth / 2 && BookBrowser.currentPage > 0) {
+      BookBrowser.direction = RIGHT;
+      BookBrowser.seamPos = 0;
       if (enableVideo) {
-        bgWrapper.children[2].lastChild.play();
+        BookBrowser.mainWrapper.getElementsByClassName("layer")[2].lastChild.play();
       }
       go = true;
-    } else if (e.clientX > window.innerWidth / 2 && currentPage < pagesCount - 1) {
-      direction = LEFT;
-      seamPos = window.innerWidth;
+    } else if (e.clientX > window.innerWidth / 2 && BookBrowser.currentPage < BookBrowser.pagesCount - 1) {
+      BookBrowser.direction = LEFT;
+      BookBrowser.seamPos = window.innerWidth;
       if (enableVideo) {
-        bgWrapper.children[0].lastChild.play();
+        BookBrowser.mainWrapper.getElementsByClassName("layer")[0].lastChild.play();
       }
       go = true;
     }
     if (go) {
-      window.removeEventListener("touchstart", initSwipe);
-      window.addEventListener("touchmove", updateMouse);
-      seamGoTo = MOUSE;
-      updateMouse(e, false);
-      animSeam();
+      window.removeEventListener("touchstart", BookBrowser.initSwipe);
+      window.addEventListener("touchmove", BookBrowser.updateMouse);
+      BookBrowser.seamGoTo = MOUSE;
+      BookBrowser.updateMouse(e, false);
+      BookBrowser.animSeam();
     }
     return false;
   };
 
-  onReleaseTouch = function() {
-    seamGoTo = SIDE;
-    return updateProgressBar();
-  };
-
-  swipeAnimEnd = function() {
-    seamGoTo = null;
-    bgWrapper.children[1].style.width = "";
-    bgWrapper.children[0].style.width = "";
-    bgWrapper.children[2].style.width = "";
-    if (direction === LEFT) {
-      next();
+  BookBrowser.swipeAnimEnd = function() {
+    BookBrowser.seamGoTo = null;
+    BookBrowser.stickToMouse = false;
+    BookBrowser.mainWrapper.getElementsByClassName("layer")[1].style.width = "";
+    BookBrowser.mainWrapper.getElementsByClassName("layer")[0].style.width = "";
+    BookBrowser.mainWrapper.getElementsByClassName("layer")[2].style.width = "";
+    if (BookBrowser.direction === LEFT) {
+      BookBrowser.next();
     } else {
-      prev();
+      BookBrowser.prev();
     }
-    window.addEventListener("touchstart", initSwipe);
-    return window.removeEventListener("touchmove", updateMouse);
+    window.addEventListener("touchstart", BookBrowser.initSwipe);
+    return window.removeEventListener("touchmove", BookBrowser.updateMouse);
   };
 
-  animSeam = function() {
-    if (seamGoTo !== null) {
-      if (direction === LEFT) {
-        if (seamGoTo === MOUSE) {
-          seamPos += (mouse.x - seamPos) / seamAnimSmoothness;
-          bgWrapper.children[1].style.width = seamPos + "px";
-        } else if (seamGoTo === SIDE) {
-          if (seamPos > 10) {
-            seamPos -= seamPos / seamAnimSmoothness;
-            bgWrapper.children[1].style.width = seamPos + "px";
+  BookBrowser.animSeam = function() {
+    if (BookBrowser.seamGoTo !== null) {
+      if (BookBrowser.direction === LEFT) {
+        if (BookBrowser.seamGoTo === MOUSE) {
+          if (BookBrowser.stickToMouse) {
+            BookBrowser.seamPos = BookBrowser.mouse.x;
           } else {
-            swipeAnimEnd();
+            BookBrowser.seamPos += (BookBrowser.mouse.x - BookBrowser.seamPos) / BookBrowser.seamAnimSmoothness;
+            if (Math.abs(BookBrowser.seamPos - BookBrowser.mouse.x) < 1) {
+              BookBrowser.stickToMouse = true;
+            }
+          }
+          BookBrowser.mainWrapper.getElementsByClassName("layer")[1].style.width = BookBrowser.seamPos + "px";
+        } else if (BookBrowser.seamGoTo === SIDE) {
+          if (BookBrowser.seamPos > 10) {
+            BookBrowser.seamPos -= BookBrowser.seamPos / BookBrowser.seamAnimSmoothness;
+            BookBrowser.mainWrapper.getElementsByClassName("layer")[1].style.width = BookBrowser.seamPos + "px";
+          } else {
+            BookBrowser.swipeAnimEnd();
           }
         }
-      } else if (direction === RIGHT) {
-        if (seamGoTo === MOUSE) {
-          seamPos += (mouse.x - seamPos) / seamAnimSmoothness;
-          bgWrapper.children[2].style.width = seamPos + "px";
-        } else if (seamGoTo === SIDE) {
-          if (seamPos < window.innerWidth - 10) {
-            seamPos += (window.innerWidth - seamPos) / seamAnimSmoothness;
-            bgWrapper.children[2].style.width = seamPos + "px";
+      } else if (BookBrowser.direction === RIGHT) {
+        if (BookBrowser.seamGoTo === MOUSE) {
+          BookBrowser.seamPos += (BookBrowser.mouse.x - BookBrowser.seamPos) / BookBrowser.seamAnimSmoothness;
+          BookBrowser.mainWrapper.getElementsByClassName("layer")[2].style.width = BookBrowser.seamPos + "px";
+        } else if (BookBrowser.seamGoTo === SIDE) {
+          if (BookBrowser.seamPos < window.innerWidth - 10) {
+            BookBrowser.seamPos += (window.innerWidth - BookBrowser.seamPos) / BookBrowser.seamAnimSmoothness;
+            BookBrowser.mainWrapper.getElementsByClassName("layer")[2].style.width = BookBrowser.seamPos + "px";
           } else {
-            swipeAnimEnd();
+            BookBrowser.swipeAnimEnd();
           }
         }
       }
-      return setTimeout(animSeam, 50);
+      return setTimeout(BookBrowser.animSeam, 50);
     }
   };
 
-  updateMouse = function(e, doPrevent) {
+  BookBrowser.updateMouse = function(e, doPrevent) {
     if (doPrevent == null) {
       doPrevent = true;
     }
@@ -201,32 +138,112 @@
     if (e.touches) {
       e = e.touches[0];
     }
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
+    BookBrowser.mouse.x = e.clientX;
+    BookBrowser.mouse.y = e.clientY;
     return false;
   };
 
-  updateProgressBar = function() {
-    return document.getElementById("indicator").style.width = (currentPage / pagesCount) * 100 + "%";
+  BookBrowser.onReleaseTouch = function() {
+    BookBrowser.seamGoTo = SIDE;
+    BookBrowser.updateProgressBar();
+    return null;
   };
 
-  prev = function() {
-    currentPage--;
-    bgWrapper.appendChild(bgWrapper.children[0]);
-    return setImages();
+  BookBrowser.setImages = function() {
+    BookBrowser.mainWrapper.getElementsByClassName("layer")[0].getElementsByClassName("bookpage")[0].src = "assets/bookImages/" + (Math.min(BookBrowser.currentPage + 1, BookBrowser.pagesCount - 1)) + ".png";
+    BookBrowser.mainWrapper.getElementsByClassName("layer")[1].getElementsByClassName("bookpage")[0].src = "assets/bookImages/" + BookBrowser.currentPage + ".png";
+    return BookBrowser.mainWrapper.getElementsByClassName("layer")[2].getElementsByClassName("bookpage")[0].src = "assets/bookImages/" + (Math.max(BookBrowser.currentPage - 1, 0)) + ".png";
   };
 
-  next = function() {
-    currentPage++;
-    bgWrapper.insertBefore(bgWrapper.children[videosCount - 1], bgWrapper.children[0]);
-    return setImages();
+  BookBrowser.updateProgressBar = function() {
+    return document.getElementById("indicator").style.width = (BookBrowser.currentPage / BookBrowser.pagesCount) * 100 + "%";
   };
 
-  setImages = function() {
-    bgWrapper.children[0].getElementsByClassName("bookpage")[0].src = "assets/bookImages/" + (Math.min(currentPage + 1, pagesCount - 1)) + ".png";
-    bgWrapper.children[1].getElementsByClassName("bookpage")[0].src = "assets/bookImages/" + currentPage + ".png";
-    return bgWrapper.children[2].getElementsByClassName("bookpage")[0].src = "assets/bookImages/" + (Math.max(currentPage - 1, 0)) + ".png";
+  BookBrowser.generateDom = function() {
+    var bookpage, bookpageWrap, fallback, i, indicator, layer, layersWrap, progressBar, progressBarWrap, src, vid, _i, _ref;
+    layersWrap = document.createElement("div");
+    indicator = document.createElement("div");
+    progressBar = document.createElement("div");
+    progressBarWrap = document.createElement("div");
+    indicator.id = "indicator";
+    progressBar.id = "progressBar";
+    layersWrap.className = "layers";
+    progressBarWrap.className = "progressBarWrap";
+    progressBar.appendChild(indicator);
+    progressBarWrap.appendChild(progressBar);
+    for (i = _i = 0, _ref = BookBrowser.videosCount - 1; _i <= _ref; i = _i += 1) {
+      layer = document.createElement("div");
+      bookpageWrap = document.createElement("div");
+      bookpage = document.createElement("img");
+      fallback = document.createElement("img");
+      layer.className = "layer";
+      bookpageWrap.className = "bookpageWrap";
+      bookpage.className = "bookpage no-select";
+      fallback.className = "fallback no-select";
+      bookpage.draggable = false;
+      fallback.draggable = false;
+      layer.id = i;
+      fallback.src = "assets/videos/fallback" + i + ".jpg";
+      if (enableVideo) {
+        vid = document.createElement("video");
+        src = document.createElement("source");
+        vid.autoplay = true;
+        vid.loop = true;
+        src.src = "assets/videos/vid" + i + ".mp4";
+        src.type = "video/mp4";
+      }
+      bookpageWrap.appendChild(bookpage);
+      if (enableVideo) {
+        vid.appendChild(src);
+        layer.appendChild(vid);
+      } else {
+        layer.appendChild(fallback);
+      }
+      layer.appendChild(bookpageWrap);
+      layersWrap.appendChild(layer);
+    }
+    BookBrowser.mainWrapper.appendChild(layersWrap);
+    BookBrowser.mainWrapper.appendChild(progressBarWrap);
+    return null;
   };
+
+  BookBrowser.onOrientation = function(e) {
+    var w;
+    e.preventDefault();
+    scrollTo(0, 0);
+    if (BookBrowser.pageDisplayWidthSuperhackState) {
+      w = "99.9999%";
+    } else {
+      w = "100%";
+    }
+    BookBrowser.mainWrapper.getElementsByClassName("layer")[0].style.width = w;
+    BookBrowser.mainWrapper.getElementsByClassName("layer")[1].style.width = w;
+    BookBrowser.pageDisplayWidthSuperhackState = !BookBrowser.pageDisplayWidthSuperhackState;
+    return false;
+  };
+
+  BookBrowser.prev = function() {
+    BookBrowser.currentPage--;
+    BookBrowser.mainWrapper.getElementsByClassName("layers")[0].appendChild(BookBrowser.mainWrapper.getElementsByClassName("layer")[0]);
+    return BookBrowser.setImages();
+  };
+
+  BookBrowser.next = function() {
+    BookBrowser.currentPage++;
+    BookBrowser.mainWrapper.getElementsByClassName("layers")[0].insertBefore(BookBrowser.mainWrapper.getElementsByClassName("layer")[BookBrowser.videosCount - 1], BookBrowser.mainWrapper.getElementsByClassName("layer")[0]);
+    return BookBrowser.setImages();
+  };
+
+  BookBrowser.kill = (function(_this) {
+    return function() {
+      var wrap;
+      wrap = BookBrowser.mainWrapper;
+      while (wrap.firstChild) {
+        wrap.removeChild(wrap.firstChild);
+      }
+      return null;
+    };
+  })(this);
 
   canPlayVideos = function() {
     var agent, _i, _len;
@@ -239,6 +256,17 @@
     return true;
   };
 
-  init();
+  enableVideo = canPlayVideos();
+
+  enableVideo = false;
+
+}).call(this);
+
+(function() {
+  var bookBrowser;
+
+  bookBrowser = document.getElementById("bookBrowser");
+
+  new BookBrowser(105, bookBrowser);
 
 }).call(this);

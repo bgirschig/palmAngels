@@ -1,13 +1,16 @@
 questions
-	the book should be centered, not the book + the shadow ?
-	center cover and back cover?
-	kill the shadows?
 
 todos
 	loader for book pages
 
-ok as it is
+wait
+	make the shadows more subtle
+
+ok / Done
+	progress bar
+	the book should be centered, not the book + the shadow ? -> no just slightly pushed down
 	is swipe anim smooth enough (framerate)
 	is the speed ok
 	no select image
-	center book images (horiz)
+	center book images (horiz&vertic)
+	center cover and back cover? -> no

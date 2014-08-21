@@ -1,21 +1,25 @@
 @import 'nib'
 
+loaderSize = 40px
+minusHalfLoader = -20px
+
 body
 	margin 0
 	padding 0
 
-	#backgroundWrapper
+	#bookBrowser
 		height 100%
 		width 100%
 		div
 			width 100%
 			height 100%
 			position absolute
-			top 0
 			overflow hidden
+			
+			&.layer, .bookpageWrap
+				top 0
 			.bookpageWrap
 				position absolute
-				// margin auto
 				width 100vw
 				height 100vh
 				img
@@ -25,29 +29,48 @@ body
 					top 52%
 					position relative
 					transform translateY(-50%)
-			video, img.fallback
+			layer, img.fallback
 				min-width 100%
 				min-height 100%
-		.video:last-child
-			width 0
-		.video:first-child
+		.progressBarWrap
 			width 100%
-
+			height 2px
+			position fixed
+			bottom 10px
+			#progressBar
+				background-color #FFB2B4
+				width 80%
+				height 100%
+				margin auto
+				position relative
+				#indicator
+					width 0%
+					height 100%
+					position relative
+					background-color white
+		.layer:last-child
+			width 0
+			background: red
+		.layer:first-child
+			width 100%
+			background: blue
 	.no-select
 		user-select none
 
-	#progressBarWrap
-		width 100%
-		height 4px
+	#hamburger
 		position fixed
-		bottom 25px
-		#progressBar
-			background-color #FFB2B4
-			width 80%
-			height 100%
-			margin auto
-			#indicator
-				width 0%
-				height 100%
-				position relative
-				background-color white
+		top 10px
+		bottom 10px
+		height 50%
+		font-size 100%
+@keyframes pusle{
+	0%{
+		transform scale(0.6)
+	}
+	50%{
+		transform scale(1)
+	}
+	100%{
+		transform scale(0.6)
+	}
+}
